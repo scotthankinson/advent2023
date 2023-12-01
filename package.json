@@ -1,0 +1,30 @@
+{
+    "name": "advent-2022",
+    "version": "0.0.0",
+    "description": "Advent2022 monkeying about",
+    "license": "MIT",
+    "repository": "",
+    "type": "module",
+    "author": {
+        "name": "",
+        "email": "",
+        "url": ""
+    },
+    "keywords": [
+        ""
+    ],
+    "main": "build/index.js",
+    "scripts": {
+        "start": "npm run build && node build/index.js",
+        "clean": "rm -rf build",
+        "build": "npm run clean && tsc",
+        "lint": "tslint -c ./tslint.json 'src/**/*.ts' 'test/**/*.ts'"
+    },
+    "dependencies": {
+    },
+    "devDependencies": {
+        "@types/mocha": "^10.0.1",
+        "@types/node": "^20.3.1",
+        "typescript": "^5.1.3"
+    }
+}
