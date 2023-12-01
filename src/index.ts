@@ -2,11 +2,13 @@
 import * as fs from 'fs';
 
 const start = (): void => {
-    console.log(solve_dec_1_pt1());
+    console.log(solve_pt1());
     // console.log(solve_dec_1_pt2());
 };
 
-const solve_dec_1_pt1 = () => {
+
+
+const solve_pt1 = () => {
     try {
         let data = fs.readFileSync('src/input.dec1.txt', 'utf8');
         const lines = data.split('\n');
@@ -19,8 +21,9 @@ const solve_dec_1_pt1 = () => {
     return -1;
 }
 
+
 /*
-const solve_dec_1_pt2 = () => {
+const solve_pt2 = () => {
     try {
         let data = fs.readFileSync('src/input.dec1.txt', 'utf8');
         const lines = data.split('\n');
