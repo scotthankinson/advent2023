@@ -3,7 +3,7 @@ import * as fs from 'fs';
 
 const start = (): void => {
     console.log(solve_pt1());
-    // console.log(solve_dec_1_pt2());
+    // console.log(solve_pt2());
 };
 
 
