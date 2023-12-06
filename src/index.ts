@@ -10,7 +10,7 @@ const start = (): void => {
 
 const solve_pt1 = () => {
     try {
-        let data = fs.readFileSync('src/input.dec6.txt', 'utf8');
+        let data = fs.readFileSync('src/input.dec7.txt', 'utf8');
         const lines = data.split('\n');
         console.log(lines);
 
@@ -25,7 +25,7 @@ const solve_pt1 = () => {
 /*
 const solve_pt2 = () => {
     try {
-        let data = fs.readFileSync('src/input.dec6.txt', 'utf8');
+        let data = fs.readFileSync('src/input.dec7.txt', 'utf8');
         const lines = data.split('\n');
         console.log(lines);
 
