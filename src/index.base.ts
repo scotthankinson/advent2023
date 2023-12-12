@@ -3,7 +3,7 @@ import * as fs from 'fs';
 
 const start = (): void => {
     console.log(solve_pt1());
-    // console.log(solve_pt2());
+    console.log(solve_pt2());
 };
 
 
@@ -22,12 +22,11 @@ const solve_pt1 = () => {
 }
 
 
-/*
 const solve_pt2 = () => {
     try {
-        let data = fs.readFileSync('src/input.dec1.txt', 'utf8');
-        const lines = data.split('\n');
-        console.log(lines);
+        // let data = fs.readFileSync('src/input.dec1.txt', 'utf8');
+        // const lines = data.split('\n');
+        // console.log(lines);
 
         return 0;
     } catch (e) {
@@ -35,7 +34,6 @@ const solve_pt2 = () => {
     }
     return -1;
 }
-*/
 
 
 
