@@ -140,37 +140,24 @@ const solve_pt2 = () => {
             console.log(rawLines[i]);
             console.log("RawLine Length: " + rawLineLength);
             console.log("CheckLine MIN Length: " + checkPartsMinLength);
-
-            if (rawLineLength - checkPartsMinLength === 0){
-                console.log("@@@@@@ Shortcut! @@@@@@@@@");
-                bigLines.push(bigLine);
-                bigLines.push('');
-            } else {
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i]);
-                bigLines.push('');
-            }
+            let group = ((rawLineLength - checkPartsMinLength) % 2);
+            console.log("Odd/Even weirdness? " + group);
             
-            /*
-            if (group === 1) {
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i]);
+            if (group === 0) {
+                bigLines.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
+                bigLines.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
+                bigLines.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
+                bigLines.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
+                bigLines.push(rawLines[i]);
                 bigLines.push('');
             } else {
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i]);
+                bigLines.push(rawLines[i]);
+                bigLines.push('?' + rawLines[i]);
+                bigLines.push('?' + rawLines[i]);
+                bigLines.push('?' + rawLines[i]);
+                bigLines.push('?' + rawLines[i]);
                 bigLines.push('');
             }
-            */
         }
         console.log(bigLines);
         
@@ -190,7 +177,7 @@ const solve_pt2 = () => {
             if (total === 0) total = localTotal;
             else total = total * localTotal;
         }
-        // 23,335,508,537,374 is too low
+        // 23,335,508,537,374 is too low  --> Odd/Even before/after splits
         // 30,338,035,833,503 is too low
         // 86,845,757,175,982 is too high
         console.log(results);
