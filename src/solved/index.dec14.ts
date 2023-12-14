@@ -224,7 +224,7 @@ const solve_pt2 = () => {
         }
         console.log(start);
         */
-        // 99630 is not the right answer -- off by 1 error!
+        // 99630 is not the right answer -- off by 1 error! it was 99641
         // 99623 -- too low? (fixed off by 1)
 
         
