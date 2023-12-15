@@ -127,40 +127,74 @@ const solve_pt2 = () => {
         for(let line of rawLines){
             lines.push(simplify(line));
         }
-
-        let bigLines = [];
-        for(let i = 0; i < lines.length; i++){
-            let bigLine = getBigLine(rawLines[i]);
-            console.log(i + ": " + bigLine);
-            
-            let rawLineLength = rawLines[i].split(' ')[0].length;
-            let checkParts = rawLines[i].split(' ')[1].split('').map(o => o === ',' ? 1 : parseInt(o)); // minimum gap of 1 between each #
-            let checkPartsMinLength = 0;
-            checkParts.forEach(o => checkPartsMinLength = checkPartsMinLength + o);
-            console.log(rawLines[i]);
-            console.log("RawLine Length: " + rawLineLength);
-            console.log("CheckLine MIN Length: " + checkPartsMinLength);
-            let group = ((rawLineLength - checkPartsMinLength) % 2);
-            console.log("Odd/Even weirdness? " + group);
-            
-            if (group === 0) {
-                bigLines.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
-                bigLines.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
-                bigLines.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
-                bigLines.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
-                bigLines.push(rawLines[i]);
-                bigLines.push('');
-            } else {
-                bigLines.push(rawLines[i]);
-                bigLines.push('?' + rawLines[i]);
-                bigLines.push('?' + rawLines[i]);
-                bigLines.push('?' + rawLines[i]);
-                bigLines.push('?' + rawLines[i]);
-                bigLines.push('');
+        
+        let cacheData = fs.readFileSync('src/input.dec12_3.txt', 'utf8');
+        const cacheLines = cacheData.split('\n');
+        let cache = {};
+        for (let i = 0; i < cacheLines.length; i++) {
+            // console.log(cacheLines[i]);
+            let parts = cacheLines[i].split('|');
+            // console.log(parts);
+            if (parts.length > 1) {
+                if (parts[1] !== 'NOPE') { 
+                    cache[parts[0]] = {'result': parseInt(parts[1])};
+                } else {
+                    cache[parts[0]] = {'result': 'NOPE', parts: []};
+                    while(true){
+                        i = i + 1;
+                        if (cacheLines[i].trim().length === 0) break;
+                        cache[parts[0]].parts.push(cacheLines[i]);
+                    }
+                } 
             }
         }
-        console.log(bigLines);
         
+        let bigLines = [];
+        for(let i = 0; i < lines.length; i++){
+            const bigLine = getBigLine(rawLines[i]);
+            console.log(bigLine);
+            
+            if (cache[bigLine] && cache[bigLine].result !== 'NOPE') {
+                console.log("Cache Hit: " + cache[bigLine].result);
+                continue;
+            } else if (cache[bigLine] && cache[bigLine].parts) {
+                // console.log(cache[bigLine].parts);
+                let total = 0;
+                for(let line of cache[bigLine].parts) {
+                    let localTotal = calculatePossibilities(line);
+                    // console.log(localTotal);
+                    if (total === 0) total = localTotal;
+                    else total = total * localTotal;
+                }
+                console.log("Cache Calc: " + total);
+
+                let defaultCalc = [];
+                total = 0;
+                defaultCalc.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
+                defaultCalc.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
+                defaultCalc.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
+                defaultCalc.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
+                defaultCalc.push(rawLines[i]);
+                for(let line of defaultCalc) {
+                    let localTotal = calculatePossibilities(line);
+                    // console.log(localTotal);
+                    if (total === 0) total = localTotal;
+                    else total = total * localTotal;
+                }
+                console.log("Default Calc: " + total);
+                continue;
+            }
+
+            try {
+                console.log(calculatePossibilities(bigLine));
+            } catch (err) {
+                console.log("Nope!");
+            }
+            
+            bigLines.push(getBigLine(rawLines[i]));
+        }
+        // console.log(bigLines);
+        if (1 === 1) return 0;
         let results = [];
         let total = 0;
         let idx = 0;

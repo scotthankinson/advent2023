@@ -127,35 +127,83 @@ const solve_pt2 = () => {
         for(let line of rawLines){
             lines.push(simplify(line));
         }
-
+        
+        let cacheData = fs.readFileSync('src/input.dec12_3.txt', 'utf8');
+        const cacheLines = cacheData.split('\n');
+        let cache = {};
+        for (let i = 0; i < cacheLines.length; i++) {
+            // console.log(cacheLines[i]);
+            let parts = cacheLines[i].split('|');
+            // console.log(parts);
+            if (parts.length > 1) {
+                if (parts[1] !== 'NOPE') { 
+                    cache[parts[0]] = {'result': parseInt(parts[1])};
+                } else {
+                    cache[parts[0]] = {'result': 'NOPE', parts: []};
+                    while(true){
+                        i = i + 1;
+                        if (cacheLines[i].trim().length === 0) break;
+                        cache[parts[0]].parts.push(cacheLines[i]);
+                    }
+                } 
+            }
+        }
+        
         let bigLines = [];
         for(let i = 0; i < lines.length; i++){
-            console.log(getBigLine(lines[i]));
-            if (lines[i].split(' ')[0].split('').filter(o => o !== '?').length === 0) {
-                // TODO: the first entry (??? 1,1) breaks completely, but the 4th and 5th are all ??? and don't break
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i]);
-                bigLines.push('');
-            } else {
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-                bigLines.push(lines[i]);
-                bigLines.push('');
-            } 
+            const bigLine = getBigLine(rawLines[i]);
+            console.log(bigLine);
+            
+            if (cache[bigLine] && cache[bigLine].result !== 'NOPE') {
+                console.log("Cache Hit: " + cache[bigLine].result);
+                continue;
+            } else if (cache[bigLine] && cache[bigLine].parts) {
+                // console.log(cache[bigLine].parts);
+                let total = 0;
+                for(let line of cache[bigLine].parts) {
+                    let localTotal = calculatePossibilities(line);
+                    // console.log(localTotal);
+                    if (total === 0) total = localTotal;
+                    else total = total * localTotal;
+                }
+                console.log("Cache Calc: " + total);
+
+                let defaultCalc = [];
+                total = 0;
+                defaultCalc.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
+                defaultCalc.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
+                defaultCalc.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
+                defaultCalc.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
+                defaultCalc.push(rawLines[i]);
+                for(let line of defaultCalc) {
+                    let localTotal = calculatePossibilities(line);
+                    // console.log(localTotal);
+                    if (total === 0) total = localTotal;
+                    else total = total * localTotal;
+                }
+                console.log("Default Calc: " + total);
+                continue;
+            }
+
+            try {
+                console.log(calculatePossibilities(bigLine));
+            } catch (err) {
+                console.log("Nope!");
+            }
+            
+            bigLines.push(getBigLine(rawLines[i]));
         }
-        console.log(bigLines);
+        // console.log(bigLines);
+        if (1 === 1) return 0;
         let results = [];
         let total = 0;
+        let idx = 0;
         for(let line of bigLines) {
             if (line.trim().length === 0) {
                 results.push(total);
-                console.log(total);
+                console.log(idx + ": " + total);
                 total = 0;
+                idx += 1;
                 continue;
             }
             let localTotal = calculatePossibilities(line);
@@ -163,81 +211,13 @@ const solve_pt2 = () => {
             if (total === 0) total = localTotal;
             else total = total * localTotal;
         }
+        // 23,335,508,537,374 is too low  --> Odd/Even before/after splits
+        // 30,338,035,833,503 is too low
+        // 86,845,757,175,982 is too high
         console.log(results);
-        /*
-        // if (1 === 1) return;
-        let bigLinesAfter = [];
-        let bigLinesBefore = [];
-        for(let i = 0; i < lines.length; i++) {
-            console.log(getBigLine(lines[i]));
-            bigLinesAfter.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-            bigLinesAfter.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-            bigLinesAfter.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-            bigLinesAfter.push(lines[i].split(' ')[0] + '? ' + lines[i].split(' ')[1]);
-            bigLinesAfter.push(lines[i]);
-            bigLinesAfter.push('');
-
-            bigLinesBefore.push(lines[i]);
-            bigLinesBefore.push('?' + lines[i]);
-            bigLinesBefore.push('?' + lines[i]);
-            bigLinesBefore.push('?' + lines[i]);
-            bigLinesBefore.push('?' + lines[i]);
-            bigLinesBefore.push('');
-        }
-
-        // console.log(bigLinesAfter);
-        // console.log(bigLinesBefore);
-
-        let afterResults = [];
-        let afterTotal = 0;
-        for(let line of bigLinesAfter) {
-            if (line.trim().length === 0) {
-                afterResults.push(afterTotal);
-                afterTotal = 0;
-                continue;
-            }
-            let localTotal = calculatePossibilities(line);
-            // console.log(localTotal);
-            if (afterTotal === 0) afterTotal = localTotal;
-            else afterTotal = afterTotal * localTotal;
-        }
-
-        let beforeResults = [];
-        let beforeTotal = 0;
-        for(let line of bigLinesBefore) {
-            if (line.trim().length === 0) {
-                beforeResults.push(beforeTotal);
-                beforeTotal = 0;
-                continue;
-            }
-            let localTotal = calculatePossibilities(line);
-            console.log(localTotal);
-            if (beforeTotal === 0) beforeTotal = localTotal;
-            else beforeTotal = beforeTotal * localTotal;
-        }
-
-        console.log(bigLinesAfter);
-        console.log(afterResults);
-        console.log("--------------");
-        console.log(bigLinesBefore);
-        console.log(beforeResults);
-        // Correct Test Values present as After, Before, Both, Before, Before, After
-        //                                Min, Max, Both, Max, Max, Min
-        let darts = [];
-        for(let i = 0; i < afterResults.length; i++) {
-            let checker = lines[i].split(' ')[0].split('');
-            let left = 0;
-            let right = 0;
-            for(let j = 0; j < checker.length; j++){
-                if (checker[j] === '#' && j < checker.length/2) left += 1;
-                else if (checker[j] === '#' && j > checker.length / 2) right += 1; 
-            }
-            if (left > right) darts.push(afterResults[i])
-            else darts.push(beforeResults[i]);
-        }
-        console.log(darts);
-        */
-        return 0;
+        let finalResult = 0;
+        results.forEach(o => finalResult += o);
+        return finalResult;
     } catch (e) {
         console.log('Error:', e.stack);
     }
