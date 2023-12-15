@@ -100,6 +100,7 @@ const solve_pt2 = () => {
         }
 
         // 244845 too low -- do they have labels contained in labels?
+        // 245223
         return focusingPower;
     } catch (e) {
         console.log('Error:', e.stack);
