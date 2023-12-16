@@ -15,13 +15,12 @@ const solve_pt1 = () => {
         const lines = data.split('\n');
         let total = 0;
         let idx = 0;
-        for(let line of lines) {
+        for (let line of lines) {
             let localTotal = calculatePossibilities(line);
-            // console.log(idx + ":" + line + "     " + localTotal);
+            console.log(idx + ":" + line + "     " + localTotal);
             total += localTotal;
             idx += 1;
         }
-
         return total;
     } catch (e) {
         console.log('Error:', e.stack);
@@ -29,62 +28,99 @@ const solve_pt1 = () => {
     return -1;
 }
 
-const getBigLine = (line) => {
-    let damagedRecord = line.split(' ')[0];
-    let validateRecord = line.split(' ')[1];
-    damagedRecord =  damagedRecord + '?' + damagedRecord + '?' + damagedRecord + "?" + damagedRecord + "?" + damagedRecord;
-    validateRecord = validateRecord + ',' + validateRecord + ',' + validateRecord + ',' + validateRecord + ',' + validateRecord
-    // console.log(damagedRecord + ' ' + validateRecord);
-    return damagedRecord + ' ' + validateRecord;
-}
-
-// StackOverflow algorithm for k choose n 
+// StackOverflow algorithm for n choose k
 // https://stackoverflow.com/questions/64414816/can-you-return-n-choose-k-combinations-in-javascript-using-array-flatmap
-const choose = (arr, k, prefix=[]) => {
+const choose = (arr, k, prefix = []) => {
     if (k == 0) return [prefix];
     return arr.flatMap((v, i) =>
-        choose(arr.slice(i+1), k-1, [...prefix, v])
+        choose(arr.slice(i + 1), k - 1, [...prefix, v])
     );
 }
 
+// StackOverflow algorithm for n choose k which doesn't blow up the heap
+// https://stackoverflow.com/questions/45813439/itertools-combinations-in-javascript
+function* range(start: number, end: number) {
+    for (; start <= end; ++start) { yield start; }
+}
+
+function last<T>(arr: T[]) { return arr[arr.length - 1]; }
+
+function* numericCombinations(n: number, r: number, loc: number[] = []): IterableIterator<number[]> {
+    const idx = loc.length;
+    if (idx === r) {
+        yield loc;
+        return;
+    }
+    for (let next of range(idx ? last(loc) + 1 : 0, n - r + idx)) { yield* numericCombinations(n, r, loc.concat(next)); }
+}
+
+
+function* combinations<T>(arr: T[], r: number) {
+    for (let idxs of numericCombinations(arr.length, r)) { yield idxs.map(i => arr[i]); }
+}
+
+
 const calculatePossibilities = (line) => {
+    // console.log("Working " + line);
     let validMoves = 0;
     let damagedRecord = line.split(' ')[0];
+    let damagedRecordBase = (' ' + damagedRecord).slice(1);
+    while (damagedRecordBase.indexOf("?") > -1) damagedRecordBase = damagedRecordBase.replace("?", ".");
     let validateRecord = line.split(' ')[1].split(',').map(o => parseInt(o));
     let fillSpots = [];
-    for(let i = 0; i < line.length; i++){
+    for (let i = 0; i < line.length; i++) {
         if (line[i] === '?') fillSpots.push(i);
     }
-    
-    let options = [];
-    for(let i = 0; i <= fillSpots.length; i++) {
-        choose(fillSpots, i).forEach(o => options.push(o));
-    }
-    // console.log(fillSpots);
-    // console.log(options);
-    
-    // console.log(damagedRecord);
-    for(let option of options) {
-        let copy : string = (' ' + damagedRecord).slice(1);
-        while(copy.indexOf("?") > -1) copy = copy.replace("?", ".");
-        for(let i = 0; i < option.length; i++){
+    // i = 0 to fillSpots.length fills WAAAAAY more scenarios than we actually use
+    let totalPounds = 0;
+    validateRecord.forEach(o => totalPounds += o);
+    let poundsToFill = totalPounds - (damagedRecord.split('#').length - 1);
+    console.log("Calculating n choose k for " + fillSpots.length + ":" + poundsToFill);
+    //let candidates = choose(fillSpots, poundsToFill);
+    //console.log(candidates.length + " possibilities");
+    // console.log("Working " + poundsToFill + " of " + fillSpots.length + ", " + candidates.length + " candidates to check");
+    //candidates.forEach((option) => {
+    let idx = 0;
+    for (let option of combinations(fillSpots, poundsToFill)){
+        // console.log(option);
+        let copy: string = (' ' + damagedRecordBase).slice(1);
+        for (let i = 0; i < option.length; i++) {
             copy = copy.slice(0, option[i]) + '#' + copy.slice(option[i] + 1);
         }
         let checkRecord = JSON.stringify(copy.split('.').filter(o => o.length > 0).map(o => o.length));
-        // console.log(checkRecord);
         if (checkRecord === JSON.stringify(validateRecord)) {
-            // console.log(option);
+            // console.log(copy);
+            // console.log(checkRecord);
+            // console.log(validateRecord);
             validMoves += 1;
+            if (validMoves % 1000 === 0) console.log(validMoves);
         }
-        // console.log("Option: " + option + ", " + copy);
-    }
+        if (idx % 1000000 === 0) console.log("idx: " + idx);
+        idx += 1;
+    };
 
     return validMoves;
 }
+
+// REAL PUZZLE TIME!
+// 5: 4 * 17.25 * 17.25 * 17.25 * 17.25 = 354173.765625
+// [ 4, 69 ]
+// 
+
+// ??.?????.????.?????.????.?????.????.?????.????.?????.? 3,1,3,1,3,1,3,1,3,1
+// ...?????.????. ?????.????. ?????.????. ?????.????. ?????.?
+//       13           13          13          13       4            = 114,244
+// ??.?????.? 3,1
+//      4    
+// ??.?????.????.?????.? 3,1,3,1
+//           69
+// ??.?????.????.?????.????.?????.? 3,1,3,1,3,1
+//          ?
+
 // 16 arrangements of 3,2,1,3,2,1,3,2,1,3,2,1,3,2,1
 // ????.#...#...?????.#...#...?????.#...#...?????.#...#...?????.#...#...
 // ####.#...#...?????.#...#...?????.#...#...?????.#...#...?????.#...#... --> fixed
-//                2             2            2              2            --> 2^4 = 16
+//     1           2             2            2              2            --> 2^4 = 16
 
 
 // 16384 arrangements of 1,1,3,1,1,3,1,1,3,1,1,3,1,1,3
@@ -97,8 +133,8 @@ const calculatePossibilities = (line) => {
 
 // 506250 arrangements of 3,2,1,3,2,1,3,2,1,3,2,1,3,2,1
 // ?###??????????###??????????###??????????###??????????###????????
-// .###.????????.###.????????.###.????????.###.????????.###.???????
-//          21          21          21             21           10  --> 1,944,810 (off by 4x)
+// .###.???????? .###.????????.###. ???????? .###.???????? .###.???????
+//          15          15          15             15           10  --> 506250
 
 // 2500 arrangements    1,6,5,1,6,5,1,6,5,1,6,5,1,6,5
 // ????.######..#####. ?????.######..#####. ?????.######..#####. ?????.######..#####. ?????.######..#####.
@@ -118,105 +154,73 @@ pt1 -> pt2
 */
 
 const solve_pt2 = () => {
-    // if (1 === 1) return 0;
+    /// if (1 === 1) return 0;
     try {
-        let data = fs.readFileSync('src/input.dec12.txt', 'utf8');
+        let data = fs.readFileSync('src/input.dec12_2.txt', 'utf8');
         const rawLines = data.split('\n');
 
         let lines = [];
-        for(let line of rawLines){
-            lines.push(simplify(line));
-        }
-        
-        let cacheData = fs.readFileSync('src/input.dec12_3.txt', 'utf8');
-        const cacheLines = cacheData.split('\n');
-        let cache = {};
-        for (let i = 0; i < cacheLines.length; i++) {
-            // console.log(cacheLines[i]);
-            let parts = cacheLines[i].split('|');
-            // console.log(parts);
-            if (parts.length > 1) {
-                if (parts[1] !== 'NOPE') { 
-                    cache[parts[0]] = {'result': parseInt(parts[1])};
+        for (let line of rawLines) {
+            // Less aggresive simplification
+            let trimmedLine = '';
+            // filter consecutive '.' which do nothing
+            for (let i = 0; i < line.length; i++) {
+                if (trimmedLine.endsWith('.') && line[i] === '.') {
+                    continue;
                 } else {
-                    cache[parts[0]] = {'result': 'NOPE', parts: []};
-                    while(true){
-                        i = i + 1;
-                        if (cacheLines[i].trim().length === 0) break;
-                        cache[parts[0]].parts.push(cacheLines[i]);
-                    }
-                } 
-            }
-        }
-        
-        let bigLines = [];
-        for(let i = 0; i < lines.length; i++){
-            const bigLine = getBigLine(rawLines[i]);
-            console.log(bigLine);
-            
-            if (cache[bigLine] && cache[bigLine].result !== 'NOPE') {
-                console.log("Cache Hit: " + cache[bigLine].result);
-                continue;
-            } else if (cache[bigLine] && cache[bigLine].parts) {
-                // console.log(cache[bigLine].parts);
-                let total = 0;
-                for(let line of cache[bigLine].parts) {
-                    let localTotal = calculatePossibilities(line);
-                    // console.log(localTotal);
-                    if (total === 0) total = localTotal;
-                    else total = total * localTotal;
+                    trimmedLine += line[i];
                 }
-                console.log("Cache Calc: " + total);
-
-                let defaultCalc = [];
-                total = 0;
-                defaultCalc.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
-                defaultCalc.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
-                defaultCalc.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
-                defaultCalc.push(rawLines[i].split(' ')[0] + '? ' + rawLines[i].split(' ')[1]);
-                defaultCalc.push(rawLines[i]);
-                for(let line of defaultCalc) {
-                    let localTotal = calculatePossibilities(line);
-                    // console.log(localTotal);
-                    if (total === 0) total = localTotal;
-                    else total = total * localTotal;
-                }
-                console.log("Default Calc: " + total);
-                continue;
             }
 
-            try {
-                console.log(calculatePossibilities(bigLine));
-            } catch (err) {
-                console.log("Nope!");
-            }
-            
-            bigLines.push(getBigLine(rawLines[i]));
+            lines.push(trimmedLine);
         }
-        // console.log(bigLines);
-        if (1 === 1) return 0;
+
         let results = [];
-        let total = 0;
-        let idx = 0;
-        for(let line of bigLines) {
-            if (line.trim().length === 0) {
-                results.push(total);
-                console.log(idx + ": " + total);
-                total = 0;
-                idx += 1;
+        let artificalTotal = 0;
+        let skips = 0;
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].indexOf('|') > -1) {
+                let parts = lines[i].split('|');
+                console.log((i+1) + ": CACHE HIT: " + parts[0]);
+                artificalTotal += parseInt(parts[0]);
+                results.push([parseInt(parts[1]), parseInt(parts[2])])
                 continue;
             }
-            let localTotal = calculatePossibilities(line);
-            // console.log(localTotal);
-            if (total === 0) total = localTotal;
-            else total = total * localTotal;
+            skips += 1;
+            if (1 === 1) continue;
+            let bigLine = getBigLine(lines[i]);
+            console.log(bigLine);
+            // Eureka!  test two segments -- the first result is part 1, the multiplier will be the same for parts 2-5
+            // Womp womp, fails for some of the inputs with a decimal result (line 2 - line = 17, line?line = 633)
+            // console.log(lines[i].split(' ')[0].length);
+            let double = lines[i].split(' ')[0] + "?" + lines[i].split(' ')[0] + " " + lines[i].split(' ')[1] + "," + lines[i].split(' ')[1];
+            // console.log(double.split(' ')[0].length);
+
+            let oneCopy = calculatePossibilities(lines[i]);
+            let twoCopies = calculatePossibilities(double);
+            let multiplier = twoCopies / oneCopy;
+            let localResult = oneCopy * multiplier * multiplier * multiplier * multiplier;
+            console.log((i + 1) + ": " + oneCopy + " * " + multiplier + " * " + multiplier + " * " + multiplier + " * " + multiplier + " = " + localResult);
+            console.log([oneCopy, twoCopies]);
+            results.push([oneCopy, twoCopies]);
         }
-        // 23,335,508,537,374 is too low  --> Odd/Even before/after splits
+
+        //        532,757,996 --> calculated / confirmed with the double tuple method
+        // 23,335,508,537,374 is too low
         // 30,338,035,833,503 is too low
+        //  2,729,378,470,257 from # 2
+        // 86,845,757,175,551 --> Incorrect (added the #. instead of #? check)
         // 86,845,757,175,982 is too high
-        console.log(results);
+        // console.log(JSON.stringify(results));
         let finalResult = 0;
-        results.forEach(o => finalResult += o);
+        for(let i = 0; i < results.length; i++){
+            let multiplier = results[i][1] / results[i][0];
+            // console.log(multiplier);
+            finalResult = finalResult + (results[i][0]  * multiplier * multiplier * multiplier * multiplier);
+        }
+        console.log("Final Result: " + finalResult);
+        console.log("Cache Result: " + artificalTotal);
+        console.log("Missing " + skips);
         return finalResult;
     } catch (e) {
         console.log('Error:', e.stack);
@@ -224,36 +228,13 @@ const solve_pt2 = () => {
     return -1;
 }
 
-let simplify = (line) => {
+const getBigLine = (line) => {
     let damagedRecord = line.split(' ')[0];
-    let validateRecord = line.split(' ')[1].split(',').map(o => parseInt(o));
-    
-    // Trim off any .'s
-    while(damagedRecord[0] === '.') damagedRecord = damagedRecord.slice(1);
-    while(damagedRecord.endsWith('.')) damagedRecord = damagedRecord.slice(0, -1);
-
-    // Collapse any fixed #'s
-    while(damagedRecord[0] === '#') {
-        damagedRecord = damagedRecord.slice(1);
-        validateRecord[0] = validateRecord[0] - 1;
-        if (validateRecord[0] === 0) {
-            validateRecord = validateRecord.slice(1);
-            break;
-        }
-    }
-
-    while(damagedRecord.endsWith('#')) {
-        damagedRecord = damagedRecord.slice(0, -1);
-        validateRecord[validateRecord.length - 1] = validateRecord[validateRecord.length -1 ] - 1;
-        if (validateRecord[validateRecord.length - 1] === 0){
-            validateRecord = validateRecord.slice(0, -1);
-            break;
-        }
-    }
-
-    let rebuilt = damagedRecord + " " + validateRecord.join(',');
-    if (rebuilt.length < line.length) return simplify(rebuilt);
-    else return rebuilt;
+    let validateRecord = line.split(' ')[1];
+    damagedRecord =  damagedRecord + '?' + damagedRecord + '?' + damagedRecord + "?" + damagedRecord + "?" + damagedRecord;
+    validateRecord = validateRecord + ',' + validateRecord + ',' + validateRecord + ',' + validateRecord + ',' + validateRecord
+    // console.log(damagedRecord + ' ' + validateRecord);
+    return damagedRecord + ' ' + validateRecord;
 }
 
 start();
