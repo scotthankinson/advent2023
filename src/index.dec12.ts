@@ -80,7 +80,7 @@ const calculatePossibilities = (line) => {
     //console.log(candidates.length + " possibilities");
     // console.log("Working " + poundsToFill + " of " + fillSpots.length + ", " + candidates.length + " candidates to check");
     //candidates.forEach((option) => {
-    let idx = 0;
+    // let idx = 0;
     for (let option of combinations(fillSpots, poundsToFill)){
         // console.log(option);
         let copy: string = (' ' + damagedRecordBase).slice(1);
@@ -95,8 +95,8 @@ const calculatePossibilities = (line) => {
             validMoves += 1;
             if (validMoves % 1000 === 0) console.log(validMoves);
         }
-        if (idx % 1000000 === 0) console.log("idx: " + idx);
-        idx += 1;
+        // if (idx % 1000000 === 0) console.log("idx: " + idx);
+        // idx += 1;
     };
 
     return validMoves;
@@ -179,6 +179,8 @@ const solve_pt2 = () => {
         let artificalTotal = 0;
         let skips = 0;
         for (let i = 0; i < lines.length; i++) {
+            // Pick up where we left off
+            if ((i + 1) < 365) continue;
             if (lines[i].indexOf('|') > -1) {
                 let parts = lines[i].split('|');
                 console.log((i+1) + ": CACHE HIT: " + parts[0]);
@@ -187,7 +189,7 @@ const solve_pt2 = () => {
                 continue;
             }
             skips += 1;
-            if (1 === 1) continue;
+            // if (1 === 1) continue;
             let bigLine = getBigLine(lines[i]);
             console.log(bigLine);
             // Eureka!  test two segments -- the first result is part 1, the multiplier will be the same for parts 2-5
