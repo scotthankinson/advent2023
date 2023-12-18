@@ -57,7 +57,6 @@ const solve_pt1 = () => {
                 break;
             }
             
-            // TODO: Re=evaluate this straight calculation based on history?
             // Forward, Left, or Right UNLESS straight===3 then Left or Right
             if (oneMove.dir === '>') {
                 if (oneMove.straight < 3 && oneMove.x < lines[0].length - 1) {
