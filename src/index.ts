@@ -13,51 +13,45 @@ interface PathEntry {
     dir: string, 
     straight: number, 
     moves: number, 
-    heat: number, 
-    history: string
+    heat: number
 }
 
-const calculateHeat = (path, lines) => {
-    let testPos = {x: 0,y: 0, heat: 0};
-    for(let i = 0; i < path.length; i++){
-        if (path[i] == ">") testPos.x += 1;
-        else if (path[i] == "v") testPos.y += 1;
-        else if (path[i] == "^") testPos.y -= 1;
-        else if (path[i] == "<") testPos.x -= 1;
-
-        testPos.heat += parseInt(lines[testPos.y][testPos.x]);   
-        console.log(testPos);
-    }
-}
 const solve_pt1 = () => {
     try {
         let data = fs.readFileSync('src/input.dec17.txt', 'utf8');
         const lines = data.split('\n');
 
         
-        let comparePath: ICompare<PathEntry> = (a:PathEntry, b:PathEntry) => a.heat === b.heat ? a.history.length - b.history.length : a.heat - b.heat;
+        let comparePath: ICompare<PathEntry> = (a:PathEntry, b:PathEntry) => a.heat - b.heat;
         let path = new PriorityQueue<PathEntry>(comparePath);
-        path.enqueue({x: 0, y: 0, dir: '>', straight: 0, moves: 0, heat: 0, history: ""});
+        path.enqueue({x: 0, y: 0, dir: '>', straight: 1, moves: 1, heat: 0});
+        path.enqueue({x: 0, y: 0, dir: 'v', straight: 1, moves: 1, heat: 0});
         let traveled = {};
-        let distance = {'0,0': 0};
+        let distance = {"0,0": 0};
+        
         let result = null;
         while(path.size() > 0) {
             // Sort is killing us, find a faster queue
             // path.sort((a, b) => a.heat - b.heat);
-            let newNodes = [];
             let oneMove = path.dequeue();
-            // console.log(JSON.stringify(oneMove));
-            if (path.size() % 25000 === 0) {
-                console.log("Traveled: " + Object.keys(traveled).length);
-                console.log("Depth: " + path.size());
-                console.log("Processing " + oneMove.x + "," + oneMove.y + "," + oneMove.dir + " with heat " + oneMove.heat + " and tail " + oneMove.history);
-            }
+            let backTrackCheck = oneMove.x + ',' + oneMove.y + ',' + oneMove.dir + ',' + oneMove.straight;
+            if (traveled[backTrackCheck]) continue;
+            traveled[backTrackCheck] = true;
+            
             if (oneMove.x === lines[0].length -1 && oneMove.y === lines.length - 1){
                 result = oneMove;
                 break;
             }
-            
-            // Fix straight calc
+            let newNodes = [];    
+            if (distance[oneMove.x + ',' + oneMove.y] && oneMove.heat < distance[oneMove.x + ',' + oneMove.y]) {
+                distance[oneMove.x + ',' + oneMove.y] = oneMove.heat;
+            } else if(!distance[oneMove.x + ',' + oneMove.y]){
+                if (oneMove.x === 0 && oneMove.y === 0) {
+                    // 0 is false, don't let it get confused
+                } else 
+                    distance[oneMove.x + ',' + oneMove.y] = oneMove.heat;
+            }
+
             // Forward, Left, or Right UNLESS straight===3 then Left or Right
             if (oneMove.dir === '>') {
                 if (oneMove.straight < 3 && oneMove.x < lines[0].length - 1) {
@@ -169,30 +163,22 @@ const solve_pt1 = () => {
                 }
             }
 
+            // console.log(newNodes);
             while(newNodes.length > 0) {
                 let oneNode = newNodes.shift();
-                // console.log(oneNode);
-                oneNode.history += oneNode.dir;
-                let backTrackCheck = oneNode.x + ',' + oneNode.y + ',' + oneMove.dir + ',' + oneNode.straight;
-                if (traveled[backTrackCheck]) continue;
-                traveled[backTrackCheck] = oneNode.history;
-
-                
-                distance[oneNode.x + ',' + oneNode.y] = distance[oneNode.x + ',' + oneNode.y] ? Math.min(distance[oneNode.x + ',' + oneNode.y], oneNode.heat) : oneNode.heat;
-                
                 path.enqueue(oneNode);
             }
         }
 
-        // 1141 incorrect
+        // 1138 getting closer ///// snailed it
+        // 1139 incorrect
+        // 1141 incorrect but consistently reproduced
         // 1151 incorrect
         // 1152 incorrect
         // 1162 too high
-        calculateHeat(result.history, lines);
         console.log(result);
-        console.log(JSON.stringify(distance));
         
-        return result.heat;
+        return 0;
     } catch (e) {
         console.log('Error:', e.stack);
     }
