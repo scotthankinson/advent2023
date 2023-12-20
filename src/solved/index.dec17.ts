@@ -17,6 +17,7 @@ interface PathEntry {
 }
 
 const solve_pt1 = () => {
+    if (1 === 1) return 0;
     try {
         let data = fs.readFileSync('src/input.dec17.txt', 'utf8');
         const lines = data.split('\n');
@@ -170,7 +171,7 @@ const solve_pt1 = () => {
             }
         }
 
-        // 1138 getting closer
+        // 1138 getting closer ///// snailed it
         // 1139 incorrect
         // 1141 incorrect but consistently reproduced
         // 1151 incorrect
@@ -178,7 +179,7 @@ const solve_pt1 = () => {
         // 1162 too high
         console.log(result);
         
-        return result.heat;
+        return 0;
     } catch (e) {
         console.log('Error:', e.stack);
     }
@@ -187,11 +188,170 @@ const solve_pt1 = () => {
 
 
 const solve_pt2 = () => {
+    // if (1 === 1) return 0;
     try {
-        // let data = fs.readFileSync('src/input.dec17.txt', 'utf8');
-        // const lines = data.split('\n');
-        // console.log(lines);
+        let data = fs.readFileSync('src/input.dec17.txt', 'utf8');
+        const lines = data.split('\n');
 
+        
+        let comparePath: ICompare<PathEntry> = (a:PathEntry, b:PathEntry) => a.heat - b.heat;
+        let path = new PriorityQueue<PathEntry>(comparePath);
+        path.enqueue({x: 0, y: 0, dir: '>', straight: 1, moves: 1, heat: 0});
+        path.enqueue({x: 0, y: 0, dir: 'v', straight: 1, moves: 1, heat: 0});
+        let traveled = {};
+        
+        let result = null;
+        while(path.size() > 0) {
+            // Sort is killing us, find a faster queue
+            // path.sort((a, b) => a.heat - b.heat);
+            let oneMove = path.dequeue();
+            let backTrackCheck = oneMove.x + ',' + oneMove.y + ',' + oneMove.dir + ',' + oneMove.straight;
+            if (traveled[backTrackCheck]) continue;
+            traveled[backTrackCheck] = true;
+            
+            if (oneMove.x === lines[0].length -1 && oneMove.y === lines.length - 1) {
+                console.log(oneMove);
+                if (oneMove.straight < 4) continue;
+                result = oneMove;
+                break;
+            }
+            let newNodes = [];    
+
+            // Forward, Left, or Right UNLESS straight===3 then Left or Right
+            if (oneMove.dir === '>') {
+                if (oneMove.straight < 10 && oneMove.x < lines[0].length - 1) {
+                    let copy = JSON.parse(JSON.stringify(oneMove));
+                    copy.x += 1;
+                    copy.straight += 1;
+                    copy.moves += 1;
+                    copy.heat += parseInt(lines[copy.y][copy.x]);
+                    newNodes.push(copy);
+                } 
+                if (oneMove.y > 0){
+                    let leftCopy = JSON.parse(JSON.stringify(oneMove));
+                    leftCopy.dir = '^';
+                    leftCopy.y -= 1;
+                    leftCopy.straight = 1;
+                    leftCopy.moves += 1;
+                    leftCopy.heat += parseInt(lines[leftCopy.y][leftCopy.x]);
+                    newNodes.push(leftCopy);
+                }
+                if (oneMove.y < lines.length - 1){
+                    let rightCopy = JSON.parse(JSON.stringify(oneMove));
+                    rightCopy.dir = 'v';
+                    rightCopy.y += 1;
+                    rightCopy.straight = 1;
+                    rightCopy.moves += 1;
+                    rightCopy.heat += parseInt(lines[rightCopy.y][rightCopy.x]);
+                    newNodes.push(rightCopy);    
+                }
+            } else if (oneMove.dir === '<'){
+                if (oneMove.straight < 10 && oneMove.x > 0) {
+                    let copy = JSON.parse(JSON.stringify(oneMove));
+                    copy.x -= 1;
+                    copy.straight += 1;
+                    copy.moves += 1;
+                    copy.heat += parseInt(lines[copy.y][copy.x]);
+                    newNodes.push(copy);
+                } 
+                if (oneMove.y > 0){
+                    let leftCopy = JSON.parse(JSON.stringify(oneMove));
+                    leftCopy.dir = '^';
+                    leftCopy.y -= 1;
+                    leftCopy.straight = 1;
+                    leftCopy.moves += 1;
+                    leftCopy.heat += parseInt(lines[leftCopy.y][leftCopy.x]);
+                    newNodes.push(leftCopy);
+                }
+                if (oneMove.y < lines.length - 1){
+                    let rightCopy = JSON.parse(JSON.stringify(oneMove));
+                    rightCopy.dir = 'v';
+                    rightCopy.y += 1;
+                    rightCopy.straight = 1;
+                    rightCopy.moves += 1;
+                    rightCopy.heat += parseInt(lines[rightCopy.y][rightCopy.x]);
+                    newNodes.push(rightCopy);    
+                }
+            } else if (oneMove.dir === '^'){
+                if (oneMove.straight < 10 && oneMove.y > 0) {
+                    let copy = JSON.parse(JSON.stringify(oneMove));
+                    copy.y -= 1;
+                    copy.straight += 1;
+                    copy.moves += 1;
+                    copy.heat += parseInt(lines[copy.y][copy.x]);
+                    newNodes.push(copy);
+                } 
+                if (oneMove.x > 0) {
+                    let leftCopy = JSON.parse(JSON.stringify(oneMove));
+                    leftCopy.dir = '<';
+                    leftCopy.x -= 1;
+                    leftCopy.straight = 1;
+                    leftCopy.moves += 1;
+                    leftCopy.heat += parseInt(lines[leftCopy.y][leftCopy.x]);
+                    newNodes.push(leftCopy);
+                }
+                if (oneMove.x < lines[0].length - 1){
+                    let rightCopy = JSON.parse(JSON.stringify(oneMove));
+                    rightCopy.dir = '>';
+                    rightCopy.x += 1;
+                    rightCopy.straight = 1;
+                    rightCopy.moves += 1;
+                    rightCopy.heat += parseInt(lines[rightCopy.y][rightCopy.x]);
+                    newNodes.push(rightCopy);    
+                }
+            } else if (oneMove.dir === 'v'){
+                if (oneMove.straight < 10 && oneMove.y < lines.length - 1) {
+                    let copy = JSON.parse(JSON.stringify(oneMove));
+                    copy.y += 1;
+                    copy.straight += 1;
+                    copy.moves += 1;
+                    copy.heat += parseInt(lines[copy.y][copy.x]);
+                    newNodes.push(copy);
+                }
+                if (oneMove.x > 0) {
+                    let leftCopy = JSON.parse(JSON.stringify(oneMove));
+                    leftCopy.dir = '<';
+                    leftCopy.x -= 1;
+                    leftCopy.straight = 1;
+                    leftCopy.moves += 1;
+                    leftCopy.heat += parseInt(lines[leftCopy.y][leftCopy.x]);
+                    newNodes.push(leftCopy);
+                }
+                if (oneMove.x < lines[0].length - 1){
+                    let rightCopy = JSON.parse(JSON.stringify(oneMove));
+                    rightCopy.dir = '>';
+                    rightCopy.x += 1;
+                    rightCopy.straight = 1;
+                    rightCopy.moves += 1;
+                    rightCopy.heat += parseInt(lines[rightCopy.y][rightCopy.x]);
+                    newNodes.push(rightCopy);    
+                }
+            }
+
+            // console.log(newNodes);
+            while(newNodes.length > 0) {
+                let oneNode = newNodes.shift();
+                // console.log(oneNode);
+                if (oneNode.dir === oneMove.dir) {
+                    // straight
+                    // console.log("Straight");
+                    if (oneMove.straight < 10) path.enqueue(oneNode);
+                } else {
+                    // turn
+                    // console.log("Turn");
+                    if (oneMove.straight >= 4) path.enqueue(oneNode);
+                } 
+            }
+        }
+
+        // 1228 --> 03: too low, filtered out too many?
+        // 1310 --> 04: incorrect --> simplified calc but forgot to check if endpoint was at least 4 moves
+        //      1312 --> 05: fixed endpoint skip check
+        // 1323 --> 02: too high --> only update distance if it's a valid output?
+        // 1329 --> 01: too high, the saga begins again
+        // console.log(JSON.stringify(distance));
+        console.log(result);
+        
         return 0;
     } catch (e) {
         console.log('Error:', e.stack);
