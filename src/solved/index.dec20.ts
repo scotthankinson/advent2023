@@ -42,8 +42,9 @@ const solve_pt1 = () => {
         let high = 0;
         let low = 0;
         // console.log(modules);
-        for(let i = 0; i < 10000000; i++){
-            let oneResult = pulse('button|low|broadcaster', modules);
+        for(let i = 1; i <= 14668097; i++){
+            if (i % 100000 === 0) console.log("working on i: " + i);
+            let oneResult = pulse('button|low|broadcaster', modules, i);
             // console.log(oneResult);
             high += oneResult.highCount;
             low += oneResult.lowCount;
@@ -60,7 +61,7 @@ const solve_pt1 = () => {
     return -1;
 }
 
-const pulse = (input, modules) => {
+const pulse = (input, modules, i) => {
     let pulses = [input];
     let lowCount = 0;
     let highCount = 0;
@@ -92,6 +93,22 @@ const pulse = (input, modules) => {
         } else if (module.type === 'con') {
             let source = pulse.split('|')[0];
             module.register[source] = freq;
+
+            // (&xn + &qn + &xf + &zl ) -high-> &th -low-> rx
+            // let interestingCons = ['xn','qn', 'xf','zl','th'];
+            let interestingCons = ['th'];
+            // if (freq === 'high' && interestingCons.indexOf(dest) > -1 && i > 14660000){
+            if (freq === 'high' && interestingCons.indexOf(dest) > -1){
+                console.log(i + ": " + pulse);
+                console.log(module.register);
+                // xf is HIGH every 3923 rotations
+                // zl is HIGH every 3739 rotations
+                // LCM for xf + zl is 14,668,097
+                // success!
+                // qn is HIGH every 3793 rotations
+                // xn is HIGH every 4027 rotations
+                // expected to all be HIGH at 224,046,542,165,867
+            }
 
             let allHigh = true;
             for(let oneRegister of Object.values(module.register)){
